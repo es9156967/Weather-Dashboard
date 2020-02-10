@@ -1,8 +1,32 @@
 $(".current-box").hide();
 $(".forecast-banner").hide();
+var forecastdisplay;
+
+
+//Pulls previous city searches from local storage.
+function allStorage() {
+    var values = [],
+        keys = Object.keys(localStorage),
+        i = keys.length;
+    while ( i-- ) {
+        values.push( localStorage.getItem(keys[i]));
+    }
+    for (j = 0; j < values.length; j++) {
+        $(".prev-list").prepend("<button class='prev-city mt-1'>" + values[j] + "</button>");
+    }
+}
+allStorage();
+
+
+
+//Clears all local storage items and previous searches from the page.
+$(".clear").on("click", function() {
+    localStorage.clear();
+    $(".prev-city").remove();
+});
 
 //This function collects all the info from the weather APIs to display on the page
-var forecastdisplay;
+
 
 $(".search").on("click", function() {
     var subject = $(".City").val();
@@ -10,44 +34,51 @@ $(".search").on("click", function() {
     var queryURL2 = "https://api.openweathermap.org/data/2.5/forecast?q=" + subject + "&appid=1df9bab5b202b06a0b1d5b5d4cd0fb87";
     var lat;
     var lon;
-    
+    var lat;
+    var lon;
+    if (forecastdisplay === true) {
+        $(".forecast-day").remove();
+        forecastdisplay = false;
+    }
+
 //This first ajax request collects current weather data and converts info into what we want to display.
     $.ajax({
         url: queryURL,
         method: "GET",
-
-        }).then(function(response){
+        
+    }).then(function(response){
         console.log(response);
-        $(".prev-list").prepend("<button>" + subject + "</button>");
+
+        //prepending the list
+        $(".prev-list").prepend("<button class='prev-city mt-1'>" + subject + "</button>");
+        localStorage.setItem(subject, subject);
         $(".current-box").show();
         $(".forecast-banner").show();
-        $(".current-city").text(response.name + " " + moment().format('MMMM Do YYYY'));
+
+        //this is the step to populate the weather icon//
+        var iconcode = response.weather[0].icon;
+        var iconurl = "http://openweathermap.org/img/wn/" + iconcode + ".png";
+        $(".icon").attr('src', iconurl)
+
+
+        lat = response.coord.lat;
+        lon = response.coord.lon;
+        $(".current-city").text(response.name + " " + moment().format('l'));
         var currentTemp = response.main.temp * (9/5) - 459.67;
         $(".current-temp").text("Temperature: " + currentTemp.toFixed(1) + " °F");
         $(".current-hum").text("Humidity: " + response.main.humidity + "%");
         $(".current-wind").text("Wind Speed: " + response.wind.speed + " MPH");
-        var iconcode = response.weather[0].icon;
-        var iconurl = "http://openweathermap.org/img/w/" + iconcode + ".png";
-        $(".icon").attr('src', iconurl)
-        lat = response.coord.lat;
-        lon = response.coord.lon;
-
-
-
-        //REDEFINING THE QUERY URL FOR THIS AJAX CALL AND ADDING THE LATITUDE AND LONGITUDE VALUES
-        queryURL = "http://api.openweathermap.org/data/2.5/uvi/forecast?&appid=3c34658c8e0e9fdb71064b81293a3704&lat=" + lat + "&lon=" + lon;
-
-        //This is the ajax call that will grab the UV INDEX CALL FOR THE ICTY
+        queryURL = "http://api.openweathermap.org/data/2.5/uvi/forecast?&appid=1df9bab5b202b06a0b1d5b5d4cd0fb87&lat=" + lat + "&lon=" + lon;
+//This is nested ajax request that gets the UV index but uses longitude and latitude from the previous ajax request to do so.
         $.ajax({
             url: queryURL,
-            method: "Get"
-    
+            method: "GET"
         }).then(function(response){
             $(".current-uv").text("UV Index: " + response[0].value);
         })
-
     })
-    //This ajax request collects weather data for the next 5 days (specifically it is grabbing the stays from noon, as opposed to every few hours)
+
+//This ajax request collects weather data for the next 5 days (specifically it is grabbing the stays from noon, as opposed to every few hours)
     $.ajax({
         url: queryURL2,
         method: "GET"
@@ -56,7 +87,7 @@ $(".search").on("click", function() {
         for (i = 0; i < forecastTimes.length; i++) {
             if (forecastTimes[i].dt_txt[12] === "2") {
                 var forecastdate = forecastTimes[i].dt_txt;
-                var forecastdatedisplay = forecastdate.charAt(6) + "/" + forecastdate.charAt(8) + forecastdate.charAt(9) +
+                var forecastdatedisplay = forecastdate.charAt(5) + forecastdate.charAt(6) + "/" + forecastdate.charAt(8) + forecastdate.charAt(9) +
                 "/" + forecastdate.charAt(0) + forecastdate.charAt(1) + forecastdate.charAt(2) + forecastdate.charAt(3);
                 var forecasticon = forecastTimes[i].weather[0].icon;
                 var forecasticonurl = "http://openweathermap.org/img/w/" + forecasticon + ".png";
@@ -76,3 +107,10 @@ $(".search").on("click", function() {
     })
 });
 
+//This will search the weather stats for the previous city when said city is clicked on.
+$(document).on("click", ".prev-city", function() {
+    var subject = $(this).text();
+    $(".subject").val(subject);
+    $(".search").click();
+    $(this).remove();
+});

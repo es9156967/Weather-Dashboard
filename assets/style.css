@@ -13,3 +13,27 @@ h1{
 }
 
 
+
+button {
+    background-color: cornflowerblue;
+    border: 2px solid cornflowerblue;
+    color: whitesmoke;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 10px;
+    padding-right: 10px
+}
+
+button:active {
+    background-color: rgb(71, 107, 173);
+}
+
+button:hover {
+    border: 2px solid rgb(53, 53, 53);
+}
+
+.clear {
+    background-color: rgb(161, 63, 63);
+    border: 2px solid rgb(161, 63, 63);
+}
+
