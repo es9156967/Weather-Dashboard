@@ -69,6 +69,8 @@ $(".search").on("click", function() {
         $(".current-hum").text("Humidity: " + response.main.humidity + "%");
         $(".current-wind").text("Wind Speed: " + response.wind.speed + " MPH");
         queryURL = "http://api.openweathermap.org/data/2.5/uvi/forecast?&appid=1df9bab5b202b06a0b1d5b5d4cd0fb87&lat=" + lat + "&lon=" + lon;
+
+        
 //This is nested ajax request that gets the UV index but uses longitude and latitude from the previous ajax request to do so.
         $.ajax({
             url: queryURL,
